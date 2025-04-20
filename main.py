@@ -1,24 +1,98 @@
 from astrbot.api.event import filter, AstrMessageEvent, MessageEventResult
 from astrbot.api.star import Context, Star, register
 from astrbot.api import logger
+import os
+from PIL import Image
+import io
+import aiohttp
 
-@register("helloworld", "YourName", "一个简单的 Hello World 插件", "1.0.0")
+@register("OriginiumSeal", "FengYing", "让你的头像被源石封印()", "1.0.0", "repo url")
 class MyPlugin(Star):
     def __init__(self, context: Context):
         super().__init__(context)
-
-    async def initialize(self):
-        """可选择实现异步的插件初始化方法，当实例化该插件类之后会自动调用该方法。"""
-    
-    # 注册指令的装饰器。指令名为 helloworld。注册成功后，发送 `/helloworld` 就会触发这个指令，并回复 `你好, {user_name}!`
-    @filter.command("helloworld")
-    async def helloworld(self, event: AstrMessageEvent):
-        """这是一个 hello world 指令""" # 这是 handler 的描述，将会被解析方便用户了解插件内容。建议填写。
-        user_name = event.get_sender_name()
-        message_str = event.message_str # 用户发的纯文本消息字符串
-        message_chain = event.get_messages() # 用户所发的消息的消息链 # from astrbot.api.message_components import *
-        logger.info(message_chain)
-        yield event.plain_result(f"Hello, {user_name}, 你发了 {message_str}!") # 发送一条纯文本消息
+        # 初始化时设置印章图片路径
+        self.plugin_dir = os.path.dirname(os.path.abspath(__file__))
+        self.seal_image_path = os.path.join(self.plugin_dir, "Sealed.png")
+        if not os.path.exists(self.seal_image_path):
+            logger.info(f"印章图片不存在: {self.seal_image_path}")
+            
+    # 监听所有消息事件
+    @filter.event_message_type(filter.EventMessageType.ALL)
+    async def poke(self, event: AstrMessageEvent):
+        '''当用户被拍一拍时，将其头像加上"封印"效果'''
+        # 1. 检测是否为拍一拍事件
+        has_poke = False
+        try:
+            for msg in event.get_messages():
+                if hasattr(msg, '__class__') and msg.__class__.__name__ == 'Poke':
+                    has_poke = True
+                    break
+        except Exception as e:
+            logger.error(f"检测拍一拍组件出错: {e}")
+        
+        # 如果不是拍一拍事件，直接返回
+        if not has_poke:
+            return
+            
+        # 2. 获取发送者信息
+        try:
+            sender_id = event.get_sender_id()
+            
+            # 3. 检查印章图片是否存在
+            if not os.path.exists(self.seal_image_path):
+                yield event.plain_result("无法处理头像: 印章图片不存在")
+                return
+            
+            # 4. 获取用户头像
+            avatar_url = f"https://q1.qlogo.cn/g?b=qq&nk={sender_id}&s=640"
+            async with aiohttp.ClientSession() as session:
+                async with session.get(avatar_url) as response:
+                    if response.status != 200:
+                        yield event.plain_result(f"获取头像失败: HTTP {response.status}")
+                        return
+                    avatar_data = await response.read()
+            
+            # 5. 处理头像图片
+            # 5.1 加载图片
+            avatar_img = Image.open(io.BytesIO(avatar_data))
+            seal_img = Image.open(self.seal_image_path).convert("RGBA")
+            
+            # 5.2 调整印章大小
+            seal_img = seal_img.resize(avatar_img.size)
+            
+            # 5.3 设置印章透明度(70%)
+            r, g, b, a = seal_img.split()
+            a = a.point(lambda i: i * 0.7)
+            seal_img = Image.merge('RGBA', (r, g, b, a))
+            
+            # 5.4 合成图片
+            if avatar_img.mode != 'RGBA':
+                avatar_img = avatar_img.convert('RGBA')
+            result_img = Image.alpha_composite(avatar_img, seal_img)
+            
+            # 6. 保存处理后的图片到临时文件
+            img_bytes = io.BytesIO()
+            result_img.save(img_bytes, format='PNG')
+            img_bytes.seek(0)
+            
+            temp_img_path = os.path.join(self.plugin_dir, f"temp_seal_{sender_id}.png")
+            with open(temp_img_path, "wb") as f:
+                f.write(img_bytes.getvalue())
+            
+            # 7. 发送处理后的图片
+            result = event.image_result(temp_img_path)
+            yield result
+            
+            # 8. 清理临时文件
+            try:
+                if os.path.exists(temp_img_path):
+                    os.remove(temp_img_path)
+            except Exception:
+                pass
+                
+        except Exception as e:
+            logger.error(f"处理头像时出错: {str(e)}")
+            yield event.plain_result(f"处理头像时出错: {str(e)}")
 
     async def terminate(self):
-        """可选择实现异步的插件销毁方法，当插件被卸载/停用时会调用。"""
+        pass
