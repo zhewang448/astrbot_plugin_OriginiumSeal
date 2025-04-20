@@ -4,7 +4,7 @@
 
 ## 访问统计
 
-<a href="https://count.getloli.com/"><img src="https://count.getloli.com/get/@:astrbot_plugin_OriginiumSeal?theme=rule34"></a>
+## <a href="https://count.getloli.com/"><img src="https://count.getloli.com/get/@:astrbot_plugin_OriginiumSeal?theme=rule34"></a>
 
 ## 功能特点
 
