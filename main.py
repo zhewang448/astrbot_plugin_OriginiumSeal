@@ -6,7 +6,7 @@ from PIL import Image
 import io
 import aiohttp
 
-@register("OriginiumSeal", "FengYing", "让你的头像被源石封印()", "1.0.0", "repo url")
+@register("OriginiumSeal", "FengYing", "让你的头像被源石封印()", "1.0.0", "https://github.com/FengYing1314/astrbot_plugin_OriginiumSeal")
 class MyPlugin(Star):
     def __init__(self, context: Context):
         super().__init__(context)
