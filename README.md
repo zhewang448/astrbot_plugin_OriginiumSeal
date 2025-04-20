@@ -27,6 +27,10 @@
 - aiohttp
 
 
-## 支持
+## 支持与致谢
 
-如有问题请提交 issue 到 [插件仓库](https://github.com/FengYing1314/astrbot_plugin_OriginiumSeal)
+### 感谢[ptilroko](https://github.com/ptilroko)
+此插件的灵感与主要思路来源是ptilroko
+
+
+### 如有问题请提交 issue 到 [插件仓库](https://github.com/FengYing1314/astrbot_plugin_OriginiumSeal)
