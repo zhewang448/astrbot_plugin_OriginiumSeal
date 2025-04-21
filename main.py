@@ -16,34 +16,19 @@ class MyPlugin(Star):
         if not os.path.exists(self.seal_image_path):
             logger.info(f"印章图片不存在: {self.seal_image_path}")
             
-    # 监听所有消息事件
-    @filter.event_message_type(filter.EventMessageType.ALL)
-    async def poke(self, event: AstrMessageEvent):
-        '''当用户被拍一拍时，将其头像加上"封印"效果'''
-        # 1. 检测是否为拍一拍事件
-        has_poke = False
+    @filter.command("制作源石头像")
+    async def make_sealed_avatar(self, event: AstrMessageEvent):
+        '''当用户发送"制作源石头像"时，将其头像加上"封印"效果'''
         try:
-            for msg in event.get_messages():
-                if hasattr(msg, '__class__') and msg.__class__.__name__ == 'Poke':
-                    has_poke = True
-                    break
-        except Exception as e:
-            logger.error(f"检测拍一拍组件出错: {e}")
-        
-        # 如果不是拍一拍事件，直接返回
-        if not has_poke:
-            return
-            
-        # 2. 获取发送者信息
-        try:
+            # 1. 获取发送者信息
             sender_id = event.get_sender_id()
             
-            # 3. 检查印章图片是否存在
+            # 2. 检查印章图片是否存在
             if not os.path.exists(self.seal_image_path):
                 yield event.plain_result("无法处理头像: 印章图片不存在")
                 return
             
-            # 4. 获取用户头像
+            # 3. 获取用户头像
             avatar_url = f"https://q1.qlogo.cn/g?b=qq&nk={sender_id}&s=640"
             async with aiohttp.ClientSession() as session:
                 async with session.get(avatar_url) as response:
@@ -52,25 +37,25 @@ class MyPlugin(Star):
                         return
                     avatar_data = await response.read()
             
-            # 5. 处理头像图片
-            # 5.1 加载图片
+            # 4. 处理头像图片
+            # 4.1 加载图片
             avatar_img = Image.open(io.BytesIO(avatar_data))
             seal_img = Image.open(self.seal_image_path).convert("RGBA")
             
-            # 5.2 调整印章大小
+            # 4.2 调整印章大小
             seal_img = seal_img.resize(avatar_img.size)
             
-            # 5.3 设置印章透明度(70%)
+            # 4.3 设置印章透明度(70%)
             r, g, b, a = seal_img.split()
             a = a.point(lambda i: i * 0.7)
             seal_img = Image.merge('RGBA', (r, g, b, a))
             
-            # 5.4 合成图片
+            # 4.4 合成图片
             if avatar_img.mode != 'RGBA':
                 avatar_img = avatar_img.convert('RGBA')
             result_img = Image.alpha_composite(avatar_img, seal_img)
             
-            # 6. 保存处理后的图片到临时文件
+            # 5. 保存处理后的图片到临时文件
             img_bytes = io.BytesIO()
             result_img.save(img_bytes, format='PNG')
             img_bytes.seek(0)
@@ -79,11 +64,10 @@ class MyPlugin(Star):
             with open(temp_img_path, "wb") as f:
                 f.write(img_bytes.getvalue())
             
-            # 7. 发送处理后的图片
-            result = event.image_result(temp_img_path)
-            yield result
+            # 6. 发送处理后的图片
+            yield event.image_result(temp_img_path)
             
-            # 8. 清理临时文件
+            # 7. 清理临时文件
             try:
                 if os.path.exists(temp_img_path):
                     os.remove(temp_img_path)
