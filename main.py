@@ -19,7 +19,7 @@ class MyPlugin(Star):
             
     @filter.command("制作源石头像")
     async def make_sealed_avatar(self, event: AstrMessageEvent):
-        '''当用户发送"制作源石头像"时，将其头像加上"封印"效果'''
+        '''当用户发送"制作源石头像@目标用户"时，将其头像加上"封印"效果'''
         try:
             # 1. 获取发送者信息
             sender_id = event.get_sender_id()
