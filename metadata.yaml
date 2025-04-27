@@ -1,6 +1,6 @@
 name: OriginiumSeal-pro
 desc: 让指定用户的头像被源石封印，发送"/制作源石头像"即可使用
-help: 发送"制作源石头像"即可获得你的源石封印头像
+help: 发送"制作源石头像@某人（不加@则为自己）"即可获得指定用户的源石封印头像
 version: v2.0.0
 author: bushikq
 repo: https://github.com/FengYing1314/astrbot_plugin_OriginiumSeal-pro
