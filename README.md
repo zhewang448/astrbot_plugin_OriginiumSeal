@@ -19,7 +19,7 @@
 
 ## 安装方法
 
-1. 在插件市场中填入仓库链接:https://github.com/zhewang448/astrbot_plugin_OriginiumSeal
+1. 在插件市场中填入仓库链接:https://github.com/zhewang448/astrbot_plugin_OriginiumSeal-pro
 
 ## 依赖
 
@@ -29,8 +29,8 @@
 
 ## 支持与致谢
 
-### 感谢[ptilroko](https://github.com/ptilroko)
+### 感谢[ptilroko](https://github.com/FengYing1314)
 此插件的灵感与主要思路来源是ptilroko
 
 
-### 如有问题请提交 issue 到 [插件仓库](https://github.com/FengYing1314/astrbot_plugin_OriginiumSeal)
+### 如有问题请提交 issue 到 [插件仓库](https://github.com/zhewang448/astrbot_plugin_OriginiumSeal)
