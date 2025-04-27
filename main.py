@@ -1,12 +1,13 @@
 from astrbot.api.event import filter, AstrMessageEvent, MessageEventResult
 from astrbot.api.star import Context, Star, register
 from astrbot.api import logger
+import astrbot.api.message_components as Comp
 import os
 from PIL import Image
 import io
 import aiohttp
 
-@register("OriginiumSeal", "FengYing", "让你的头像被源石封印()", "1.0.0", "https://github.com/FengYing1314/astrbot_plugin_OriginiumSeal")
+@register("OriginiumSeal-pro", "bushikq", "将指定用户头像添加源石封印效果", "2.0.0", "https://github.com/zhewang448/astrbot_plugin_OriginiumSeal-pro")
 class MyPlugin(Star):
     def __init__(self, context: Context):
         super().__init__(context)
@@ -22,6 +23,11 @@ class MyPlugin(Star):
         try:
             # 1. 获取发送者信息
             sender_id = event.get_sender_id()
+            target_user_id = next(
+            (str(seg.qq) for seg in event.get_messages()
+             if isinstance(seg, Comp.At) and str(seg.qq) != sender_id),
+            sender_id
+        )
             
             # 2. 检查印章图片是否存在
             if not os.path.exists(self.seal_image_path):
@@ -29,7 +35,7 @@ class MyPlugin(Star):
                 return
             
             # 3. 获取用户头像
-            avatar_url = f"https://q1.qlogo.cn/g?b=qq&nk={sender_id}&s=640"
+            avatar_url = f"https://q1.qlogo.cn/g?b=qq&nk={target_user_id}&s=640"
             async with aiohttp.ClientSession() as session:
                 async with session.get(avatar_url) as response:
                     if response.status != 200:
@@ -60,7 +66,7 @@ class MyPlugin(Star):
             result_img.save(img_bytes, format='PNG')
             img_bytes.seek(0)
             
-            temp_img_path = os.path.join(self.plugin_dir, f"temp_seal_{sender_id}.png")
+            temp_img_path = os.path.join(self.plugin_dir, f"temp_seal_{target_user_id}.png")
             with open(temp_img_path, "wb") as f:
                 f.write(img_bytes.getvalue())
             
